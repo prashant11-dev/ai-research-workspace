@@ -1,0 +1,75 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: arw-postgres
+
+    restart: unless-stopped
+
+    env_file:
+      - .env.docker
+
+    ports:
+      - "${POSTGRES_PORT}:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres/init:/docker-entrypoint-initdb.d
+
+    networks:
+      - arw-network
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8
+
+    container_name: arw-redis
+
+    restart: unless-stopped
+
+    ports:
+      - "6379:6379"
+
+    networks:
+      - arw-network
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+
+    container_name: arw-pgadmin
+
+    restart: unless-stopped
+
+    env_file:
+      - .env.docker
+
+    ports:
+      - "${PGADMIN_PORT}:80"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - arw-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  arw-network:
+    driver: bridge
