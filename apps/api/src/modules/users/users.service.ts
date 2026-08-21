@@ -8,4 +8,8 @@ export class UserService {
     async findByEmail(email: string) {
         return this.prisma.user.findUnique({ where: { email } })
     }
+
+    async count(): Promise<number> {
+        return this.prisma.user.count()
+    }
 }
