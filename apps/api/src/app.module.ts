@@ -4,6 +4,7 @@ import { UserModule } from './modules/users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { envValidationSchema } from './config/env.validation';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { envValidationSchema } from './config/env.validation';
       validationSchema: envValidationSchema,
       cache: true
     }),
-    DatabaseModule, UserModule],
+    DatabaseModule, UserModule, AuthModule],
 })
 export class AppModule { }
