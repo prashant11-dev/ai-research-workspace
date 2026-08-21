@@ -1,8 +1,18 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from './database/database.module';
 import { UserModule } from './modules/users/users.module';
+import { ConfigModule } from '@nestjs/config';
+import configuration from './config/configuration';
+import { envValidationSchema } from './config/env.validation';
 
 @Module({
-  imports: [DatabaseModule, UserModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      validationSchema: envValidationSchema,
+      cache: true
+    }),
+    DatabaseModule, UserModule],
 })
 export class AppModule { }
