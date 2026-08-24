@@ -14,7 +14,6 @@ export default () => ({
 
     auth: {
         accessTokenSecret: process.env.JWT_ACCESS_SECRET,
-        refreshTokenSecret: process.env.JWT_REFRESH_SECRET,
         accessTokenExpiration: process.env.JWT_ACCESS_EXPIRATION ?? '15m',
         refreshTokenExpiration:
             process.env.JWT_REFRESH_EXPIRATION ?? '7d',
