@@ -9,7 +9,18 @@ export class UserService {
         return this.prisma.user.findUnique({ where: { email } })
     }
 
-    async count(): Promise<number> {
-        return this.prisma.user.count()
+    async findById(userId: string) {
+        return await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                isEmailVerified: true,
+                createdAt: true,
+                updatedAt: true,
+            }
+        });
     }
 }
