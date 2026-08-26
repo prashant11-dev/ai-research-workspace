@@ -109,4 +109,84 @@ export class AuthService {
 
         return user;
     }
+
+    async refresh(refreshToken: string) {
+        const hashedRefreshToken = hashRefreshToken(refreshToken);
+
+        return this.prisma.$transaction(async (tx) => {
+            const token = await this.prisma.refreshToken.findUnique({
+                where: {
+                    tokenHash: hashedRefreshToken,
+                },
+                include: {
+                    user: true,
+                }
+            });
+
+            if (!token) {
+                throw new UnauthorizedException(
+                    'Invalid refresh token',
+                );
+            }
+
+            if (token.revokedAt) {
+                throw new UnauthorizedException(
+                    'Invalid refresh token',
+                );
+            }
+
+            if (token.expiresAt <= new Date()) {
+                throw new UnauthorizedException(
+                    'Invalid refresh token',
+                );
+            }
+
+
+            await this.prisma.refreshToken.update({
+                where: {
+                    id: token.id,
+                },
+                data: {
+                    revokedAt: new Date(),
+                }
+            })
+
+            const accessToken = await this.jwtService.signAsync({
+                sub: token.user.id,
+                email: token.user.email,
+            })
+
+            const newRefreshToken = generateRefreshToken();
+            const newRefreshTokenHash = hashRefreshToken(newRefreshToken);
+            const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+            await this.prisma.refreshToken.create({
+                data: {
+                    tokenHash: newRefreshTokenHash,
+                    userId: token.user.id,
+                    expiresAt,
+                }
+            })
+
+            return {
+                accessToken,
+                refreshToken: newRefreshToken,
+            };
+        })
+    }
+
+    async logout(refreshToken: string) {
+        const hashedRefreshToken = hashRefreshToken(refreshToken);
+
+        await this.prisma.refreshToken.updateMany({
+            where: {
+                tokenHash: hashedRefreshToken,
+                revokedAt: null,
+            },
+            data: {
+                revokedAt: new Date(),
+            }
+        })
+    }
+
 }

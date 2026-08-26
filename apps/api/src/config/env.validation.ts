@@ -26,4 +26,14 @@ export const envValidationSchema = Joi.object({
 
     JWT_REFRESH_EXPIRATION: Joi.string()
         .default('7d'),
+
+    AUTH_COOKIE_NAME: Joi.string()
+        .default('refresh_token'),
+
+    AUTH_COOKIE_SECURE: Joi.boolean()
+        .default(false),
+
+    AUTH_COOKIE_SAME_SITE: Joi.string()
+        .valid('strict', 'lax', 'none')
+        .default('lax'),
 });
