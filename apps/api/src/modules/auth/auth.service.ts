@@ -5,7 +5,7 @@ import * as argon2 from 'argon2';
 import { generateRefreshToken, hashRefreshToken } from './utils/token.util';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
-import { normalizeEmail } from './utils/normalize-emaiil';
+import { normalizeEmail } from './utils/normalize-email';
 
 enum UserStatus {
     ACTIVE = 'ACTIVE',
