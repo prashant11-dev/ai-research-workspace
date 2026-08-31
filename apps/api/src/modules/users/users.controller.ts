@@ -1,6 +1,9 @@
 import { Controller, Get, Req, UseGuards } from "@nestjs/common";
 import { UserService } from "./users.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import type { AuthenticatedUser } from "../auth/types/authenticated-user.type";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
 interface AuthenticatedRequest extends Request {
     user: {
@@ -16,11 +19,12 @@ export class UserController {
         private readonly userService: UserService
     ) { }
 
+    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Get('me')
-    getMe(@Req() request: AuthenticatedRequest) {
+    getMe(@CurrentUser() user: AuthenticatedUser) {
         return this.userService.findById(
-            request.user.userId,
+            user.userId,
         );
     }
 

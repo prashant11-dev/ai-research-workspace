@@ -2,9 +2,16 @@ import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/co
 import { PrismaService } from 'src/database/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import * as argon2 from 'argon2';
-import { generateRefreshToken, hashRefreshToken } from './token.util';
+import { generateRefreshToken, hashRefreshToken } from './utils/token.util';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
+import { normalizeEmail } from './utils/normalize-email';
+
+enum UserStatus {
+    ACTIVE = 'ACTIVE',
+    SUSPENDED = 'SUSPENDED',
+    DELETED = 'DELETED',
+}
 
 @Injectable()
 export class AuthService {
@@ -13,7 +20,9 @@ export class AuthService {
 
     async register(request: RegisterDto) {
 
-        const existingUser = await this.prisma.user.findUnique({ where: { email: request.email } })
+        const email = normalizeEmail(request.email)
+
+        const existingUser = await this.prisma.user.findUnique({ where: { email } })
 
         if (existingUser) {
             throw new ConflictException("Unable to create account with the provided information")
@@ -24,7 +33,7 @@ export class AuthService {
         return this.prisma.$transaction(async (tx) => {
             const user = await tx.user.create({
                 data: {
-                    email: request.email,
+                    email,
                     passwordHash: hashedPassword,
                     firstName: request.firstName,
                     lastName: request.lastName,
@@ -81,7 +90,6 @@ export class AuthService {
         const expiresAt = new Date(
             Date.now() + 7 * 24 * 60 * 60 * 1000,
         );
-
         await this.prisma.refreshToken.create({
             data: {
                 tokenHash: refreshTokenHash,
@@ -97,9 +105,18 @@ export class AuthService {
     }
 
     private async validateUser(email: string, password: string) {
-        const user = await this.prisma.user.findUnique({ where: { email: email } });
+
+        const normalizedEmail = normalizeEmail(email)
+
+        const user = await this.prisma.user.findUnique({ where: { email: normalizedEmail } });
         if (!user) {
             return null
+        }
+
+        if (user.status !== UserStatus.ACTIVE) {
+            throw new UnauthorizedException(
+                'Unable to authenticate with the provided credentials',
+            );
         }
 
         const isPasswordValid = await argon2.verify(user.passwordHash, password)
