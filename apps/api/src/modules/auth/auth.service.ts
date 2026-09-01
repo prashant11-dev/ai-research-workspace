@@ -6,6 +6,8 @@ import { generateRefreshToken, hashRefreshToken } from './utils/token.util';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
 import { normalizeEmail } from './utils/normalize-email';
+import slugify from 'slugify';
+import { randomBytes } from 'crypto';
 
 enum UserStatus {
     ACTIVE = 'ACTIVE',
@@ -41,9 +43,11 @@ export class AuthService {
                 }
             })
 
+            const workspaceName = `${request.firstName}'s workspace`
             const workspace = await tx.workspace.create({
                 data: {
-                    name: `${request.firstName}'s workspace`,
+                    name: workspaceName,
+                    slug: `${slugify(workspaceName, { lower: true, strict: true })}-${randomBytes(4).toString('hex')}`,
                 }
             })
 
