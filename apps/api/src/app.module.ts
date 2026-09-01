@@ -6,6 +6,7 @@ import configuration from './config/configuration';
 import { envValidationSchema } from './config/env.validation';
 import { AuthModule } from './modules/auth/auth.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 
 @Module({
   imports: [
@@ -19,6 +20,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
       validationSchema: envValidationSchema,
       cache: true
     }),
-    DatabaseModule, UserModule, AuthModule],
+    DatabaseModule, UserModule, AuthModule, WorkspacesModule],
 })
 export class AppModule { }
