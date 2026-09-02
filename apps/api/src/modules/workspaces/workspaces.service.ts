@@ -65,4 +65,20 @@ export class WorkspacesService {
             }),
         );
     }
+
+    async findById(workspaceId: string) {
+        return this.prisma.workspace.findUnique({
+            where: {
+                id: workspaceId,
+            },
+
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                updatedAt: true,
+                createdAt: true
+            }
+        })
+    }
 }
